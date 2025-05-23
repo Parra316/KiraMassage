@@ -1,54 +1,65 @@
-# Kira Massage
+# 🧴 KiraMassage - Sistema de Gestión de Masajes
 
-Un sistema web para la gestión integral de un consultorio de masajes, desarrollado con Spring Boot, Thymeleaf, JPA (MariaDB) y Spring Security (JWT).
-
----
-
-## 📋 Funcionalidades principales
-
-1. **Autenticación y seguridad**  
-   - Registro y login basado en base de datos con JWT.  
-   - Filtrado de rutas públicas (`/auth/**`, CSS/JS) y protegidas.  
-   - Carga de roles con _fetch join_ para evitar errores de carga perezosa.
-
-2. **Gestión de usuarios**  
-   - Clientes, masajistas y administradores.  
-   - CRUD de usuarios mediante formularios Thymeleaf y validaciones.
-
-3. **Asignación de roles**  
-   - Entidad intermedia `UsuarioRol` con clave compuesta (`@IdClass`).  
-   - Página `/role/manage` para ver, agregar y eliminar usuarios de cada rol vía AJAX.
-
-4. **Configuración de consultorios y servicios**  
-   - Tablas `Consultorio`, `Servicio` y unión `Disponibilidad`.  
-   - Módulo para vincular qué servicios ofrece cada consultorio.
-
-5. **Agendamiento de citas**  
-   - Entidad `Cita` con fecha (`LocalDate`) y relación a usuario, masajista, consultorio y servicio.  
-   - Formulario de creación, edición en modals y eliminación en tabla paginada.
+KiraMassage es una aplicación web desarrollada con **Spring Boot**, **Thymeleaf**, **JPA** y **Spring Security (JWT)**. Permite a los usuarios agendar citas para masajes y a los administradores gestionar servicios, consultorios, usuarios, citas, disponibilidad y roles.
 
 ---
 
-## 📦 Tecnologías
+## 🗂️ Índice
 
-- **Java 17**, Spring Boot 3.x  
-- **Spring Data JPA** + MariaDB  
-- **Spring Security (JWT)**  
-- **Thymeleaf** + Bootstrap 5 + Vanilla JS  
-- **Lombok**
+- [[#🔑 Características Principales]]
+- [[#⚙️ Requisitos Técnicos]]
+- [[#🛠️ Configuración Inicial]]
+- [[#📁 Estructura del Proyecto]]
+- [[#👤 Roles y Funcionalidades]]
+- [[#📸 Capturas (opcional)]]
+- [[#📌 Créditos]]
 
 ---
 
-## 🚀 Instalación y puesta en marcha
+## 🔑 Características Principales
 
-1. **Clona el repositorio**  
-   ```bash
-   git clone git@github.com:TU_USUARIO/kira-massage.git
-   cd kira-massage
+### Usuarios (USER)
+- Inicio de sesión.
+- Vista de servicios disponibles.
+- Agendamiento de citas (consultorio, masaje, horario).
+
+### Administradores (ADMIN)
+- Panel de gestión de:
+  - Servicios (alta/baja/modificación).
+  - Consultorios.
+  - Citas agendadas.
+  - Usuarios.
+  - Disponibilidad por consultorio.
+  - Roles y permisos de usuarios.
+
+---
+
+## ⚙️ Requisitos Técnicos
+
+- **Java** 17 o superior.
+- **Maven** 3.8+
+- **MySQL** 8.x
+
+---
+
+## 🛠️ Configuración Inicial
+
+### 1. Clonar el Repositorio
+
+## bash
+git clone https://github.com/Parra316/KiraMassage.git
+cd KiraMassage
+
+
+### 2. Crear la Base de Datos
+
+## Cargar los archivos SQL desde src/main/resources/sql/:
+        schema.sql: Crea las tablas.
+        data.sql: Inserta roles y usuarios por defecto. ⚠️ Este paso es obligatorio para el correcto funcionamiento del login
 
 # Configura application.properties
 
-spring.datasource.url=jdbc:mariadb://localhost:3306/kiramassage
+spring.datasource.url=jdbc:mariadb://localhost:3306/proyecto
 spring.datasource.username=tu_usuario
 spring.datasource.password=tu_password
 

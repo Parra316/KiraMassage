@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsuarioRolRepository extends JpaRepository<UsuarioRol, UsuarioRolId> {
+    void deleteByUser_IdUsuarioAndRol_IdRol(Integer userId, Integer rolId);
 }

@@ -13,18 +13,23 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "usuarioroles")
+@Entity
+@Table(name = "usuarioroles")
 @IdClass(UsuarioRolId.class)
 public class UsuarioRol implements Serializable {
+
     @Id
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
     @JsonIgnore
     private Usuario user;
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "rol_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rol_id", nullable = false)
     @JsonIgnore
     private Rol rol;
+
+    // constructores, getters/setters…
 }
+

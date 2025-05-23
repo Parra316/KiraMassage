@@ -23,7 +23,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return usuario.getRoles().stream()
+        return usuario.getUsuarioRoles().stream()
                 .map(ur -> new SimpleGrantedAuthority(
                         "ROLE_" + ur.getRol().getNombre().toUpperCase()
                 ))

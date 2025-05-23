@@ -25,6 +25,6 @@ public class Rol implements Serializable {
     @Column(name = "descripcion")
     private String descripcion;
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UsuarioRol> usuarios = new HashSet<>();
+    private Set<UsuarioRol> usuarioRoles = new HashSet<>();
 }
 

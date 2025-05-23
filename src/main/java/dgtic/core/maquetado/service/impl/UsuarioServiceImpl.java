@@ -24,11 +24,11 @@ public class UsuarioServiceImpl extends GenericServiceImpl<Usuario, Integer> imp
     }
 
     public List<Usuario> findAllAdmin() {
-        return usuarioRepository.findByRolesRolNombre("ADMIN");
+        return usuarioRepository.findByRolNombre("ADMIN");
     }
 
     public List<Usuario> findAllClients() {
-        return usuarioRepository.findByRolesRolNombre("USER");
+        return usuarioRepository.findByRolNombre("USER");
     }
 
     @Override
@@ -43,8 +43,6 @@ public class UsuarioServiceImpl extends GenericServiceImpl<Usuario, Integer> imp
                     entityExistente.setCorreo(entity.getCorreo());
                     entityExistente.setContrasena(entity.getContrasena());
                     entityExistente.setTelefono(entity.getTelefono());
-                    entityExistente.setRegistro(entity.getRegistro());
-                    entityExistente.setRoles(entity.getRoles());
 
                     // --- Citas Usuarios---
                     Set<Cita> nuevasCitasUser = entity.getCitaUser();

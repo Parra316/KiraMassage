@@ -12,7 +12,7 @@
     <select id="roleSelect"
             name="roleId"
             class="form-select mb-4">
-      <option value="" selected>Selecciona un Rol</option>
+      <option value="" disabled selected>Selecciona un Rol</option>
       <option th:each="r : ${roles}"
               th:value="${r.idRol}"
               th:text="${r.nombre}">
@@ -25,7 +25,7 @@
       <select id="userSelect"
               name="userId"
               class="form-select">
-        <option value="" selected>Selecciona un Usuario</option>
+        <option value="" disabled selected>Selecciona un Usuario</option>
       </select>
       <button id="addUserBtn"
               class="btn btn-primary"
@@ -47,11 +47,11 @@
       <tbody>
       <!-- Recorremos cada UsuarioRol dentro de cada Rol -->
       <th:block th:each="r : ${roles}">
-        <th:block th:each="ur : ${r.usuarios}">
+        <th:block th:each="ur : ${r.usuarioRoles}">
           <tr th:attr="
                       data-role-id=${r.idRol},
                       data-user-id=${ur.user.idUsuario}">
-            <td th:text="${ur.user.nombre} + ' ' + ${ur.user.apellidoPaterno}">
+            <td th:text="${ur.user.nombre + ' ' + ur.user.apellidoPaterno}">
               Usuario X
             </td>
             <td th:text="${ur.user.correo}">
@@ -64,8 +64,15 @@
     </table>
 
     <script th:inline="javascript">
-      /*<![CDATA[*/
-      const allUsers = /*[[${users}]]*/ [];
+      var allUsers = [
+        /*[# th:each="u : ${users}"]*/
+        {
+          idUsuario: [[${u.idUsuario}]],
+          nombre:    '[[${u.nombre}]] [[${u.apellidoPaterno}]]',
+          correo:    '[[${u.correo}]]'
+        },
+        /*[/]*/
+      ];
 
       document.addEventListener('DOMContentLoaded', () => {
         const roleSelect = document.getElementById('roleSelect');
@@ -82,8 +89,7 @@
           }
           table.style.display = '';
           Array.from(tbody.rows).forEach(row => {
-            row.style.display = (row.getAttribute('data-role-id') === rid)
-                                ? '' : 'none';
+            row.style.display = (row.dataset.roleId === rid) ? '' : 'none';
           });
         }
 
@@ -94,17 +100,21 @@
 
           const assigned = Array.from(
             tbody.querySelectorAll(`tr[data-role-id="${rid}"]`)
-          ).map(r => r.getAttribute('data-user-id'));
+          ).map(r => r.dataset.userId);
 
           allUsers.forEach(u => {
             if (!assigned.includes(u.idUsuario + '')) {
               const opt = document.createElement('option');
               opt.value = u.idUsuario;
-              opt.text  = u.nombre + ' ' + u.apellidoPaterno;
+              opt.text = u.nombre;  // ya incluye apellido
               userSelect.appendChild(opt);
             }
           });
         }
+
+        // Inicializar vista si ya hay un rol seleccionado
+        updateTableView();
+        updateUserOptions();
 
         roleSelect.addEventListener('change', () => {
           updateTableView();
@@ -122,14 +132,14 @@
           form.append('roleId', rid);
           form.append('userId', uid);
 
-          fetch('/role/update-rol', {
+          fetch('/update-rol', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: form.toString()
           })
           .then(resp => {
             if (!resp.ok) throw new Error('Error al agregar usuario');
-            window.location.href = '/role/manage';
+            window.location.href = '/roles';
           })
           .catch(e => alert(e.message));
         });

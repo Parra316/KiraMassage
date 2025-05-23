@@ -56,9 +56,11 @@ public class UsuarioController {
             }
             return "redirect:/login";
         }
+        Rol r = rolService.getById(2);
         String encriptada = passwordEncoder.encode(usuario.getContrasena());
         usuario.setContrasena(encriptada);
         usuario.setRegistro(LocalDateTime.now());
+        usuario.addRol(r);
         usuarioService.create(usuario);
         return "redirect:/login";
     }
@@ -82,12 +84,18 @@ public class UsuarioController {
     @PostMapping("/update-rol")
     public String updateRol(@RequestParam("roleId") Integer roleId,
                             @RequestParam("userId") Integer userId) {
+        int tmpRol=0;
         Rol rol = rolService.getById(roleId);
         Usuario usuario = usuarioService.getById(userId);
-
+        if(roleId == 2){
+            tmpRol =1;
+        }else if(roleId == 1){
+            tmpRol =2;
+        }
         UsuarioRol ur = new UsuarioRol();
         ur.setUser(usuario);
         ur.setRol(rol);
+        usuarioRolService.deleteUsuarioRol(userId, tmpRol);
         usuarioRolService.save(ur);
 
         return "redirect:/roles";

@@ -11,15 +11,36 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
-    @Query("""
-        SELECT u
-        FROM usuarios u
-        LEFT JOIN FETCH u.roles ur
-        LEFT JOIN FETCH ur.rol r
-        WHERE u.correo = :correo
-      """)
-    Optional<Usuario> findByCorreoWithRoles(@Param("correo") String correo);
-    List<Usuario> findByRolesRolNombre(String nombre);
-    Optional<Usuario> findByCorreo(String correo);
 
+    /**
+     * Trae el Usuario junto con sus UsuarioRol y cada Rol,
+     * usando JOIN FETCH para inicializar la colección en la misma consulta.
+     */
+    @Query("""
+        SELECT DISTINCT u
+        FROM usuarios u
+          JOIN FETCH u.usuarioRoles ur
+          JOIN FETCH ur.rol r
+        WHERE u.correo = :correo
+    """)
+    Optional<Usuario> findByCorreoWithRoles(@Param("correo") String correo);
+
+    /**
+     * Búsqueda derivada que navega por la colección intermedia:
+     * usuarioRoles → rol → nombre
+     */
+    List<Usuario> findByUsuarioRoles_Rol_Nombre(String rolNombre);
+
+    /**
+     * Mismo JPQL que el derivado de arriba, si prefieres escribirlo explícito.
+     */
+    @Query("""
+        SELECT DISTINCT u
+        FROM usuarios u
+          JOIN u.usuarioRoles ur
+          JOIN ur.rol r
+        WHERE r.nombre = :rolNombre
+    """)
+    List<Usuario> findByRolNombre(@Param("rolNombre") String rolNombre);
 }
+

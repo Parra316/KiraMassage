@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -19,17 +20,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String correo)
-            throws UsernameNotFoundException {
-
+    @Transactional(readOnly = true)  // mantiene la sesión abierta durante la carga
+    public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepo
                 .findByCorreoWithRoles(correo)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Usuario no encontrado: " + correo)
                 );
 
-        // aquí ya 'usuario.getRoles()' está completamente inicializado
+        // Aquí, usuario.getUsuarioRoles() y cada ur.getRol() ya están inicializados
         return new UserDetailsImpl(usuario);
     }
 }
+
 

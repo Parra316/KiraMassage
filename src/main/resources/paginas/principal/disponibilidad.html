@@ -110,7 +110,10 @@
                 ).map(r => r.getAttribute('data-servicio-id'));
 
                 allServices.forEach(s => {
-                  if (!assigned.includes(s.idServicio + '')) {
+                  if (
+                    s.estatus === 'disponible' &&
+                    !assigned.includes(String(s.idServicio))
+                  ) {
                     const o = document.createElement('option');
                     o.value = s.idServicio;
                     o.text  = s.nombre;

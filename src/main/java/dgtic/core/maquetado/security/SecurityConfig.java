@@ -77,7 +77,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/admin/**", "/consultorio", "/servicios", "/usuarios",
                                             "/citas", "/disponibilidad", "roles").hasRole("ADMIN")
-                        .requestMatchers("/cliente/**").hasRole("USER")
+                        .requestMatchers("/cliente/**", "agendaCitas").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout

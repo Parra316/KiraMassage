@@ -54,12 +54,18 @@ public class Usuario implements Serializable {
     @Column(name = "registro")
     private LocalDateTime registro;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UsuarioRol> roles = new HashSet<>();
+    private Set<UsuarioRol> usuarioRoles = new HashSet<>();
     @OneToMany(mappedBy = "citaUsuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<Cita> citaUser = new HashSet<>();
     @OneToMany(mappedBy = "citaMasajista", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<Cita> citaAdmin = new HashSet<>();
+
+    public void addRol(Rol rol) {
+        UsuarioRol ur = new UsuarioRol(this, rol);
+        usuarioRoles.add(ur);
+        rol.getUsuarioRoles().add(ur);
+    }
 }
 

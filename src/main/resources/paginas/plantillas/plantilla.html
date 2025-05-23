@@ -15,7 +15,7 @@
         <div class="container-fluid">
 
             <!-- Zona 30%: Título -->
-            <div class="text-center" style="flex: 0 0 30%; max-width: 30%;">
+            <div class="text-center" style="flex: 0 0 20%; max-width: 20%;">
                 <h1 class="m-0 fs-4 text-dark" th:text="${page}"></h1>
             </div>
 
@@ -27,7 +27,7 @@
 
             <!-- Zona 70%: Enlaces -->
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav"
-                 style="flex: 0 0 70%; max-width: 70%;">
+                 style="flex: 0 0 80%; max-width: 80%;">
                 <ul class="nav nav-pills">
                     <li class="nav-item" sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
                         <a class="nav-link text-dark" th:classappend="${page == 'inicio'} ? 'active'" href="/">
@@ -77,7 +77,7 @@
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a href="#" onclick="document.getElementById('logoutForm').submit()"
                            class="nav-link text-dark" th:classappend="${page == 'cerrar sesion'} ? 'active'">
-                            <i class="bi bi-box-arrow-right"></i>
+                            <i class="bi bi-box-arrow-right"> Cerrar Sesion</i>
                         </a>
                         <form id="logoutForm" th:action="@{/logout}" method="post" style="display: none;">
                             <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>

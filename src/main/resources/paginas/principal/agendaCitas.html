@@ -9,19 +9,11 @@
     <form th:action="@{create-agendaCita}" method="post" th:object="${cita}" class="p-3">
       <div class="form-field d-flex align-items-center">
         <i class="bi bi-lock"></i>
-        <select class="form-select" id="citaUsuario" name="citaUsuario" required>
-          <option value="" disabled selected>Seleccione un Usuario</option>
-          <option th:each="cli : ${clientes}" th:value="${cli.idUsuario}" th:text="${cli.nombre}"></option>
-        </select>
-      </div>
-      <div class="form-field d-flex align-items-center">
-        <i class="bi bi-lock"></i>
         <select class="form-select" id="citaMasajista" name="citaMasajista" required>
           <option value="" disabled selected>Seleccione un Masajista</option>
           <option th:each="user : ${masajistas}" th:value="${user.idUsuario}" th:text="${user.nombre}"></option>
         </select>
       </div>
-
       <div class="form-field d-flex align-items-center">
         <i class="bi bi-lock"></i>
         <select class="form-select"

@@ -1,10 +1,14 @@
 package dgtic.core.maquetado.controller;
 
 import dgtic.core.maquetado.model.*;
+import dgtic.core.maquetado.security.model.UserDetailsImpl;
 import dgtic.core.maquetado.service.CitaService;
 import dgtic.core.maquetado.service.HorarioService;
+import dgtic.core.maquetado.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -17,6 +21,9 @@ public class CitaController {
 
     @Autowired
     HorarioService horarioService;
+
+    @Autowired
+    UsuarioService usuarioService;
 
     @Autowired
     CitaService citaService;
@@ -36,6 +43,10 @@ public class CitaController {
             horario.setHoraFin(horario.getHoraInicio().plusMinutes(cita.getCitaServicio().getDuracion()));
             horarioService.create(horario);
         }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        Usuario user = userDetails.getUsuario();
+        cita.setCitaUsuario(user);
         cita.setCitaConsultorio(horario .getHorarioConsultorio());
         cita.setFechaCita(horario.getFecha());
         cita.setCitaHorario(horario);

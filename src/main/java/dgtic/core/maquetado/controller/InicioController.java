@@ -1,6 +1,7 @@
 package dgtic.core.maquetado.controller;
 
 import dgtic.core.maquetado.model.*;
+import dgtic.core.maquetado.security.model.UserDetailsImpl;
 import dgtic.core.maquetado.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -55,9 +58,11 @@ public class InicioController {
                         ),
                         m -> new ArrayList<>(m.values())
                 ));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         modelo.addAttribute("dispo", disponibilidadList);
         modelo.addAttribute("consultorios", consultorios);
-        modelo.addAttribute("page", "Kira Massage");
+        modelo.addAttribute("page", "Bienvenid@ "+userDetails.getNombre());
         return  "inicio";
     }
 
@@ -88,21 +93,20 @@ public class InicioController {
         }
         modelo.addAttribute("franjas", franjas);
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+
         // 3) Construimos el mapa consultorioId -> List<Servicio>
         Map<Integer, List<Servicio>> serviciosPorConsultorio = disponibilidadList.stream()
                 .collect(Collectors.groupingBy(
                         d -> d.getDispoConsultorio().getIdConsultorio(),
                         Collectors.mapping(Disponibilidad::getDispoServicio, Collectors.toList())
                 ));
-
-        // 4) Cargamos listas estáticas para usuarios y (todos) los servicios
-        List<Usuario> clientes    = usuarioService.findAllClients();
         List<Usuario> masajistas  = usuarioService.findAllAdmin();
         List<Servicio> servicios  = servicioService.findAll();
 
         // 5) Llenamos el modelo
         modelo.addAttribute("fechaActual", LocalDate.now().plusDays(1));
-        modelo.addAttribute("clientes",    clientes);
         modelo.addAttribute("masajistas",  masajistas);
         modelo.addAttribute("servicios",   servicios);
         modelo.addAttribute("consultorios",           consultorios);
@@ -111,7 +115,7 @@ public class InicioController {
         // <-- Nuevo atributo para el filtrado dinámico -->
         modelo.addAttribute("serviciosPorConsultorio", serviciosPorConsultorio);
         modelo.addAttribute("cita", new Cita());
-        modelo.addAttribute("page", "Agendar Cita");
+        modelo.addAttribute("page", "Bienvenid@ "+userDetails.getNombre());
         return "principal/agendaCitas";
     }
 

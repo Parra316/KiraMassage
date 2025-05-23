@@ -21,6 +21,10 @@ public class UserDetailsImpl implements UserDetails {
         return usuario;
     }
 
+    public String getNombre() {
+        return usuario.getNombre();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return usuario.getUsuarioRoles().stream()

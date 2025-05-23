@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
+    Optional<Usuario> findByCorreo(String correo);
+
     /**
      * Trae el Usuario junto con sus UsuarioRol y cada Rol,
      * usando JOIN FETCH para inicializar la colección en la misma consulta.

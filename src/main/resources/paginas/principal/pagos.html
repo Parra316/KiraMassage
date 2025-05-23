@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+  <main class="container text-center shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+    <h1 th:text="${page}">Pagos</h1>
+    <!-- Contenido Dinámico -->
+  </main>
+</div>
+</body>
+</html>
+

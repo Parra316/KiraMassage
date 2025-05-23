@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+    <div class="container mt-4">
+        <h3 class="text-dark">Relájate y disfruta de nuestros servicios de masajes profesionales.</h3>
+
+        <select id="dispoConsultorio"
+                name="dispoConsultorio"
+                class="form-select mb-4"
+                required>
+            <option value="" selected>Seleccione un Consultorio</option>
+            <option th:each="cons : ${consultorios}"
+                    th:value="${cons.idConsultorio}"
+                    th:text="${cons.nombre}">Consultorio X</option>
+        </select>
+
+        <!-- Oculto por defecto -->
+        <div id="textContainer" style="display: none; margin-bottom: 1rem;">
+            <p class="form-label" style="height: 70vh;"></p>
+        </div>
+
+        <div id="servicios-container" class="row">
+            <div th:each="disp : ${dispo}"
+                 class="col-sm-12 col-md-6 col-lg-4 mb-4"
+                 th:attr="data-consultorio-id=${disp.dispoConsultorio.idConsultorio}">
+                <div class="card text-dark card-has-bg click-col"
+                     th:style="'background-image: url(https://www.dondeir.com/wp-content/uploads/2017/01/los-mejores-masajes-relajantes-de-la-ciudad-de-mexico-2.jpg)'">
+                    <div class="card-img-overlay d-flex flex-column">
+                        <div class="card-body">
+                            <small class="card-meta mb-2">Servicio</small>
+                            <h4 class="card-title mt-0"
+                                th:text="${disp.dispoServicio.nombre}">Nombre del servicio</h4>
+                            <p th:text="${disp.dispoServicio.descripcion}">Descripción</p>
+                            <p>
+                                Duración: <span th:text="${disp.dispoServicio.duracion} + ' minutos'">60 minutos</span><br>
+                                Precio:   <span th:text="'$' + ${disp.dispoServicio.precio} + ' MXN'">$500 MXN</span>
+                            </p>
+                        </div>
+                        <div class="card-footer mt-auto" sec:authorize="!hasRole('ADMIN')">
+                            <a th:href="@{/citas(consultorioId=${disp.dispoConsultorio.idConsultorio},
+                                               servicioId=${disp.dispoServicio.idServicio})}"
+                               class="btn btn-dark">
+                                Seleccionar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            function actualizarVista() {
+                const selectDisp   = document.getElementById('dispoConsultorio');
+                const selectedId   = selectDisp.value;
+                const cards        = document.querySelectorAll('#servicios-container [data-consultorio-id]');
+                const textContainer = document.getElementById('textContainer');
+
+                // Filtrar tarjetas
+                cards.forEach(card => {
+                  if (selectedId === 'all' || card.getAttribute('data-consultorio-id') === selectedId) {
+                    card.style.display = '';
+                  } else {
+                    card.style.display = 'none';
+                  }
+                });
+
+                // Mostrar/ocultar cuadro de texto
+                if (selectedId === '') {
+                  textContainer.style.display = 'block';
+                } else {
+                  textContainer.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Inicializa todo al cargar
+                actualizarVista();
+                document.getElementById('dispoConsultorio')
+                        .addEventListener('change', actualizarVista);
+            });
+            /*]]>*/
+        </script>
+
+    </div>
+</div>
+</body>
+</html>

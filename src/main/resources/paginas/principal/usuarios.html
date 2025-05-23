@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+
+    <!-- Botón Agregar -->
+    <button type="button"
+            class="btn btn-success mt-5"
+            data-bs-toggle="modal"
+            data-bs-target="#addModal">
+        Agregar Usuario
+    </button>
+
+    <!-- Tabla de usuarios -->
+    <table class="table table-bordered table-hover mt-3">
+        <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Nombres</th>
+            <th>Apellidos</th>
+            <th>Edad</th>
+            <th>Correo</th>
+            <th>Telefono</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="usuario : ${user.content}">
+            <td th:text="${usuario.idUsuario}">ID Ejemplo</td>
+            <td th:text="${usuario.nombre}">Nombre Ejemplo</td>
+            <td th:text="${usuario.apellidoMaterno} + ' ' + ${usuario.apellidoPaterno}">Apellidos Ejemplo</td>
+            <td th:text="${usuario.edad}">Edad Ejemplo</td>
+            <td th:text="${usuario.correo}">Correo Ejemplo</td>
+            <td th:text="${usuario.telefono}">Telefono Ejemplo</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        th:attr="data-bs-target='#editModal-' + ${usuario.idUsuario}">
+                    <i class="bi bi-pencil-square"></i> Editar
+                </button>
+                <form th:action="@{delete-usuario/{id}(id=${usuario.idUsuario})}" method="post" style="display:inline"
+                      th:onsubmit="return confirm('¿Seguro que deseas borrar este usuario?');">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i> Borrar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <nav th:if="${user.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <!-- Botón anterior -->
+            <li class="page-item" th:classappend="${user.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/usuarios(page=${user.number - 1}, size=${user.size})}">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+
+            <!-- Números de página -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, user.totalPages - 1)}"
+                th:classappend="${i == user.number} ? 'active'">
+                <a class="page-link" th:href="@{/usuarios(page=${i}, size=${user.size})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <!-- Botón siguiente -->
+            <li class="page-item" th:classappend="${user.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/usuarios(page=${user.number + 1}, size=${user.size})}">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Modal Agregar -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="wrapper modal-content">
+                <form th:action="@{create-usuario}" th:object="${usuario}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Agregar Usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-person-circle"></i>
+                            <input type="text" class="form-control is-valid" id="nombre"
+                                   name="nombre"
+                                   placeholder="Nombre"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="text" class="form-control is-valid" id="apellidoMaterno"
+                                   name="apellidoMaterno"
+                                   placeholder="Apellido Materno"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="text" class="form-control is-valid" id="apellidoPaterno"
+                                   name="apellidoPaterno"
+                                   placeholder="Apellido Paterno"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="number" class="form-control is-valid" id="edad"
+                                   name="edad"
+                                   min="1" max="99"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="email" th:class="${#fields.hasErrors('correo')}? 'form-control is-invalid':form-control"
+                                   id="correo"
+                                   name="correo"
+                                   th:field="*{correo}"
+                                   placeholder="Correo Electronico"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" class="form-control is-valid" id="contrasena"
+                                   name="contrasena"
+                                   placeholder="Contraseña"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="tel" class="form-control is-valid" id="telefono"
+                                   name="telefono"
+                                   minlength="8"
+                                   maxlength="10"
+                                   placeholder="Numero de telefono"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary mx-auto"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success mx-auto">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar -->
+    <div th:each="usuario : ${user}">
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
+             th:id="'editModal-' + ${usuario.idUsuario}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="wrapper modal-content">
+                    <!-- Apunta al endpoint PutMapping, pero el form es POST + override -->
+                    <form th:action="@{update-usuario/{id}(id=${usuario.idUsuario})}" method="post">
+                        <!-- Method override para que Spring lo trate como PUT -->
+                        <input type="hidden" name="_method" value="put" />
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Actualizar Consultorio</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-person-circle"></i>
+                                <input type="text" class="form-control is-valid" id="nombreEdit"
+                                       name="nombre"
+                                       th:value="${usuario.nombre}"
+                                       placeholder="Nombre"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="text" class="form-control is-valid" id="apellidoMaternoEdit"
+                                       name="apellidoMaterno"
+                                       th:value="${usuario.apellidoMaterno}"
+                                       placeholder="Apellido Materno"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="text" class="form-control is-valid" id="apellidoPaternoEdit"
+                                       name="apellidoPaterno"
+                                       th:value="${usuario.apellidoPaterno}"
+                                       placeholder="Apellido Paterno"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="number" class="form-control is-valid" id="edadEdit"
+                                       name="edad"
+                                       th:value="${usuario.edad}"
+                                       min="1" max="99"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="email"  class="'form-control is-valid"
+                                       id="correoEdit"
+                                       name="correo"
+                                       th:value="${usuario.correo}"
+                                       placeholder="Correo Electronico"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="password" class="form-control is-valid" id="contrasenaEdit"
+                                       name="contrasena"
+                                       th:value="${usuario.contrasena}"
+                                       placeholder="Contraseña"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="tel" class="form-control is-valid" id="telefonoEdit"
+                                       name="telefono"
+                                       th:value="${usuario.telefono}"
+                                       minlength="8"
+                                       maxlength="10"
+                                       placeholder="Numero de telefono"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-secondary mx-auto"
+                                    data-bs-dismiss="modal"
+                                    style="width:40%">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="btn btn-primary mx-auto"
+                                    style="width:40%">
+                                Actualizar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>

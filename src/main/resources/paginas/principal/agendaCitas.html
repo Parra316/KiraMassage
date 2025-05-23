@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+  <div class="wrapper mt-5">
+    <div class="text-center mt-4 name">Kira Massage</div>
+    <form th:action="@{create-cita}" method="post" th:object="${cita}" class="p-3">
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <select class="form-select" id="citaUsuario" name="citaUsuario" required>
+          <option value="" disabled selected>Seleccione un Usuario</option>
+          <option th:each="cli : ${clientes}" th:value="${cli.idUsuario}" th:text="${cli.nombre}"></option>
+        </select>
+      </div>
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <select class="form-select" id="citaMasajista" name="citaMasajista" required>
+          <option value="" disabled selected>Seleccione un Masajista</option>
+          <option th:each="user : ${masajistas}" th:value="${user.idUsuario}" th:text="${user.nombre}"></option>
+        </select>
+      </div>
+
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <select class="form-select"
+                id="dispoConsultorio"
+                name="dispoConsultorio"
+                onchange="actualizarServiciosDispo()"
+                required>
+          <option value="" th:selected="${consultorioSeleccionado == null}">Seleccione un Consultorio</option>
+          <option th:each="cons : ${consultorios}"
+                  th:value="${cons.idConsultorio}"
+                  th:text="${cons.nombre}"
+                  th:selected="${cons.idConsultorio == consultorioSeleccionado}">
+          </option>
+        </select>
+      </div>
+
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <select class="form-select"
+                id="citaServicio"
+                name="citaServicio"
+                onchange="actualizarDatosServicio()"
+                required>
+          <option value="" th:selected="${servicioSeleccionado == null}">Seleccione un Servicio</option>
+          <option th:each="serv : ${servicios}"
+                  th:value="${serv.idServicio}"
+                  th:data-precio="${serv.precio}"
+                  th:data-duracion="${serv.duracion}"
+                  th:text="${serv.nombre}"
+                  th:selected="${serv.idServicio == servicioSeleccionado}">
+          </option>
+        </select>
+      </div>
+
+      <div class="row mb-3 justify-content-around">
+        <div class="col-5 d-flex align-items-center gap-2">
+          <label for="precio" class="mb-0">Precio:</label>
+          <input type="text" id="precio" class="form-control" readonly>
+        </div>
+        <div class="col-5 d-flex align-items-center gap-2">
+          <label for="duracion" class="mb-0">Duración:</label>
+          <input type="text" id="duracion" class="form-control" readonly>
+        </div>
+      </div>
+
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <input type="date"
+               th:min="${fechaActual}"
+               id="fecha"
+               name="fechaCita"
+               class="form-control"
+               required>
+      </div>
+      <div class="form-field d-flex align-items-center">
+        <i class="bi bi-lock"></i>
+        <input type="time"
+               id="horaInicio"
+               name="horaInicio"
+               class="form-control"
+               min="11:00" max="21:00"
+               required>
+      </div>
+      <button class="btn mt-3">Agendar Cita</button>
+    </form>
+  </div>
+
+  <!-- --------------------------------------------------------------------
+       INCRUSTAMOS EN JS EL MAPA <consultorioId, [ {idServicio,nombre,precio,duracion}, ... ]>
+       -------------------------------------------------------------------- -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+      // Debes pasar desde el controlador un atributo "serviciosPorConsultorio"
+      // que sea un Map<Long, List<ServicioDTO>>. Aquí Thymeleaf lo convierte a JS.
+      var serviciosPorConsultorio = /*[[${serviciosPorConsultorio}]]*/ {};
+
+      // Al cargar: engancha también el listener de cambio de servicio
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('dispoConsultorio')
+                .addEventListener('change', actualizarServiciosDispo);
+
+        // Si ya había un servicio seleccionado, dispara su update:
+        const servSel = document.getElementById('citaServicio');
+        if (servSel && servSel.value) {
+          actualizarDatosServicio();
+        }
+      });
+
+      var servicioSeleccionado = /*[[${servicioSeleccionado}]]*/ null;
+
+      window.addEventListener('DOMContentLoaded', function () {
+      const consId = document.getElementById('dispoConsultorio').value;
+        const servicios = serviciosPorConsultorio[consId] || [];
+
+        const servicioSelect = document.getElementById('citaServicio');
+        // Reinicio opciones
+        servicioSelect.innerHTML =
+          '<option value="" disabled selected>Seleccione un Servicio</option>';
+
+        // Repoblo sólo con los que estén en el mapa
+        servicios.forEach(serv => {
+          const opt = document.createElement('option');
+          opt.value = serv.idServicio;
+          opt.text  = serv.nombre;
+          opt.dataset.precio   = serv.precio;
+          opt.dataset.duracion = serv.duracion;
+          if (servicioSeleccionado != null
+              && serv.idServicio.toString() === servicioSeleccionado.toString()) {
+            opt.selected = true;
+          }
+          servicioSelect.appendChild(opt);
+        });
+      });
+
+      function actualizarDatosServicio() {
+        const select = document.getElementById('citaServicio');
+        const opt    = select.options[select.selectedIndex];
+        const precio   = opt.getAttribute('data-precio');
+        const duracion = opt.getAttribute('data-duracion');
+
+        document.getElementById('precio').value   = precio   ? `$${precio}`   : '';
+        document.getElementById('duracion').value = duracion ? `${duracion} min` : '';
+      }
+
+      function actualizarServiciosDispo() {
+        const consId = document.getElementById('dispoConsultorio').value;
+        const servicios = serviciosPorConsultorio[consId] || [];
+
+        const servicioSelect = document.getElementById('citaServicio');
+        // Reinicio opciones
+        servicioSelect.innerHTML =
+          '<option value="" disabled selected>Seleccione un Servicio</option>';
+
+        // Repoblo sólo con los que estén en el mapa
+        servicios.forEach(serv => {
+          const opt = document.createElement('option');
+          opt.value = serv.idServicio;
+          opt.text  = serv.nombre;
+          opt.dataset.precio   = serv.precio;
+          opt.dataset.duracion = serv.duracion;
+          servicioSelect.appendChild(opt);
+        });
+
+        // Limpiar campos de precio/duración
+        document.getElementById('precio').value   = '';
+        document.getElementById('duracion').value = '';
+      }
+    /*]]>*/
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+  <div class="container mt-4">
+
+    <h2 th:text="${page}">Gestión de Roles</h2>
+
+    <!-- 1) Select de Roles -->
+    <select id="roleSelect"
+            name="roleId"
+            class="form-select mb-4">
+      <option value="" selected>Selecciona un Rol</option>
+      <option th:each="r : ${roles}"
+              th:value="${r.idRol}"
+              th:text="${r.nombre}">
+        Rol X
+      </option>
+    </select>
+
+    <!-- 2) Select de Usuarios libres + botón -->
+    <div class="input-group mb-4">
+      <select id="userSelect"
+              name="userId"
+              class="form-select">
+        <option value="" selected>Selecciona un Usuario</option>
+      </select>
+      <button id="addUserBtn"
+              class="btn btn-primary"
+              type="button">
+        Agregar Usuario
+      </button>
+    </div>
+
+    <!-- 3) Tabla de Usuarios asignados (oculta si no hay rol seleccionado) -->
+    <table id="usersTable"
+           class="table table-bordered table-hover"
+           style="display:none;">
+      <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Email</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- Recorremos cada UsuarioRol dentro de cada Rol -->
+      <th:block th:each="r : ${roles}">
+        <th:block th:each="ur : ${r.usuarios}">
+          <tr th:attr="
+                      data-role-id=${r.idRol},
+                      data-user-id=${ur.user.idUsuario}">
+            <td th:text="${ur.user.nombre} + ' ' + ${ur.user.apellidoPaterno}">
+              Usuario X
+            </td>
+            <td th:text="${ur.user.correo}">
+              email@ejemplo.com
+            </td>
+          </tr>
+        </th:block>
+      </th:block>
+      </tbody>
+    </table>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      const allUsers = /*[[${users}]]*/ [];
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const roleSelect = document.getElementById('roleSelect');
+        const userSelect = document.getElementById('userSelect');
+        const addBtn     = document.getElementById('addUserBtn');
+        const table      = document.getElementById('usersTable');
+        const tbody      = table.querySelector('tbody');
+
+        function updateTableView() {
+          const rid = roleSelect.value;
+          if (!rid) {
+            table.style.display = 'none';
+            return;
+          }
+          table.style.display = '';
+          Array.from(tbody.rows).forEach(row => {
+            row.style.display = (row.getAttribute('data-role-id') === rid)
+                                ? '' : 'none';
+          });
+        }
+
+        function updateUserOptions() {
+          const rid = roleSelect.value;
+          userSelect.innerHTML = '<option value="" selected>Selecciona un Usuario</option>';
+          if (!rid) return;
+
+          const assigned = Array.from(
+            tbody.querySelectorAll(`tr[data-role-id="${rid}"]`)
+          ).map(r => r.getAttribute('data-user-id'));
+
+          allUsers.forEach(u => {
+            if (!assigned.includes(u.idUsuario + '')) {
+              const opt = document.createElement('option');
+              opt.value = u.idUsuario;
+              opt.text  = u.nombre + ' ' + u.apellidoPaterno;
+              userSelect.appendChild(opt);
+            }
+          });
+        }
+
+        roleSelect.addEventListener('change', () => {
+          updateTableView();
+          updateUserOptions();
+        });
+
+        addBtn.addEventListener('click', () => {
+          const rid = roleSelect.value;
+          const uid = userSelect.value;
+          if (!rid || !uid) {
+            return alert('Selecciona primero un rol y un usuario.');
+          }
+
+          const form = new URLSearchParams();
+          form.append('roleId', rid);
+          form.append('userId', uid);
+
+          fetch('/role/update-rol', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form.toString()
+          })
+          .then(resp => {
+            if (!resp.ok) throw new Error('Error al agregar usuario');
+            window.location.href = '/role/manage';
+          })
+          .catch(e => alert(e.message));
+        });
+      });
+      /*]]>*/
+    </script>
+
+  </div>
+</div>
+</body>
+</html>

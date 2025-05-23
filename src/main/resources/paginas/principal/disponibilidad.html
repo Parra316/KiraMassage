@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+    <div class="container mt-4">
+
+        <!-- 1) Select de consultorios -->
+        <select id="dispoConsultorio"
+                name="dispoConsultorio"
+                class="form-select mb-4"
+                required>
+            <option value="" selected>Selecciona un Consultorio</option>
+            <option th:each="cons : ${consultorios}"
+                    th:value="${cons.idConsultorio}"
+                    th:text="${cons.nombre}">
+                Consultorio X
+            </option>
+        </select>
+
+        <!-- 2) Grupo: select de servicios + botón -->
+        <div class="input-group mb-4">
+            <select id="dispoServicios"
+                    name="dispoServicios"
+                    class="form-select"
+                    required>
+                <option value="" selected>Selecciona un Servicio</option>
+            </select>
+            <button id="addServicioBtn"
+                    class="btn btn-primary"
+                    type="button">
+                Agregar Servicio
+            </button>
+        </div>
+
+        <!-- 3) Tabla de servicios asignados (oculta si no hay consultorio) -->
+        <table id="servicios-table"
+               class="table table-bordered table-hover"
+               style="display:none;">
+            <thead>
+            <tr>
+                <th>Servicio</th>
+                <th>Descripción</th>
+                <th>Duración</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="disp : ${dispo}"
+                th:attr="
+            data-consultorio-id=${disp.dispoConsultorio.idConsultorio},
+            data-servicio-id=${disp.dispoServicio.idServicio}">
+                <td th:text="${disp.dispoServicio.nombre}">Nombre servicio</td>
+                <td th:text="${disp.dispoServicio.descripcion}">Descripción</td>
+                <td th:text="${disp.dispoServicio.duracion} + ' min'">60 min</td>
+                <td th:text="'$' + ${disp.dispoServicio.precio} + ' MXN'">$500 MXN</td>
+                <td>
+                    <form th:action="@{delete-dispo/{id}(id=${disp.idDisponibilidad})}"
+                          method="post"
+                          style="display:inline"
+                          th:onsubmit="return confirm('¿Borrar este servicio?');">
+                        <input type="hidden" name="_method" value="delete"/>
+                        <button class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function() {
+              const selectCons = document.getElementById('dispoConsultorio');
+              const selectServ = document.getElementById('dispoServicios');
+              const btnAdd     = document.getElementById('addServicioBtn');
+              const table      = document.getElementById('servicios-table');
+              const tbody      = table.querySelector('tbody');
+
+              // Thymeleaf inyecta tu lista completa de servicios como un array JS
+              const allServices = /*[[${servicios}]]*/ [];
+
+              // 1) Mostrar/ocultar tabla según consultorio
+              function actualizarVista() {
+                const cid = selectCons.value;
+                if (!cid) {
+                  table.style.display = 'none';
+                  return;
+                }
+                table.style.display = '';
+                tbody.querySelectorAll('tr').forEach(row => {
+                  row.style.display =
+                    row.getAttribute('data-consultorio-id') === cid
+                      ? ''
+                      : 'none';
+                });
+              }
+
+              // 2) Rellenar el <select> de servicios libres
+              function updateServicioOptions() {
+                const cid = selectCons.value;
+                selectServ.innerHTML = '<option value="" selected>Selecciona un Servicio</option>';
+                if (!cid) return;
+                // IDs asignados al consultorio
+                const assigned = Array.from(
+                  tbody.querySelectorAll(`tr[data-consultorio-id="${cid}"]`)
+                ).map(r => r.getAttribute('data-servicio-id'));
+
+                allServices.forEach(s => {
+                  if (!assigned.includes(s.idServicio + '')) {
+                    const o = document.createElement('option');
+                    o.value = s.idServicio;
+                    o.text  = s.nombre;
+                    selectServ.appendChild(o);
+                  }
+                });
+              }
+
+              // 3) Al hacer clic en "Agregar Servicio" → form data + recarga
+              btnAdd.addEventListener('click', () => {
+                const cid = selectCons.value;
+                const sid = selectServ.value;
+                if (!cid || !sid) {
+                  return alert('Selecciona primero consultorio y servicio.');
+                }
+
+                // Preparamos los datos con nombres que Spring puede *bind* a Disponibilidad
+                const form = new URLSearchParams();
+                form.append('dispoConsultorio.idConsultorio', cid);
+                form.append('dispoServicio.idServicio', sid);
+
+                fetch('/create-dispo', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: form.toString()
+                })
+                .then(resp => {
+                  if (!resp.ok) throw new Error('Error al agregar');
+                  // recarga completa para que tu controlador repueble modelo y tabla
+                  window.location.reload();
+                })
+                .catch(e => alert(e.message));
+              });
+
+              // 4) Al cambiar de consultorio:
+              selectCons.addEventListener('change', () => {
+                actualizarVista();
+                updateServicioOptions();
+              });
+            });
+            /*]]>*/
+        </script>
+
+    </div>
+</div>
+</body>
+</html>

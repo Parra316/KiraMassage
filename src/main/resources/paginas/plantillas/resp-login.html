@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+    <div class="wrapper mt-5">
+        <div class="text-center mt-4 name">
+            Kira Massage
+        </div>
+        <form th:action="@{/auth/login}" method="post" class="p-3 mt-3">
+            <div class="form-field d-flex align-items-center">
+                <i class="bi bi-person-circle"></i>
+                <input type="email" class="form-control is-valid" id="correo"
+                       name="correo"
+                       placeholder="Correo Electronico"
+                       required>
+            </div>
+            <div class="form-field d-flex align-items-center">
+                <i class="bi bi-lock"></i>
+                <input type="password" class="form-control is-valid" id="contrasena"
+                       name="contrasena"
+                       placeholder="Contraseña"
+                       required>
+            </div>
+            <button class="btn mt-3">Sign In</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

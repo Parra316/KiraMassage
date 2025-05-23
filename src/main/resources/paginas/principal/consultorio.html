@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+
+    <!-- Botón Agregar -->
+    <button type="button"
+            class="btn btn-success mt-5"
+            data-bs-toggle="modal"
+            data-bs-target="#addModal">
+        Agregar Consultorio
+    </button>
+
+    <!-- Tabla de consultorios -->
+    <table class="table table-bordered table-hover mt-3">
+        <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="consultorio : ${con.content}">
+            <td th:text="${consultorio.idConsultorio}">1</td>
+            <td th:text="${consultorio.nombre}">Nombre Ejemplo</td>
+            <td th:text="${consultorio.direccion}">Dirección Ejemplo</td>
+            <td th:text="${consultorio.telefono}">Teléfono Ejemplo</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        th:attr="data-bs-target='#editModal-' + ${consultorio.idConsultorio}">
+                    <i class="bi bi-pencil-square"></i> Editar
+                </button>
+                <form th:action="@{delete-consultorio/{id}(id=${consultorio.idConsultorio})}" method="post" style="display:inline"
+                      th:onsubmit="return confirm('¿Seguro que deseas borrar este consultorio?');">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i> Borrar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <nav th:if="${con.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <!-- Botón anterior -->
+            <li class="page-item" th:classappend="${con.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/consultorio(page=${con.number - 1}, size=${con.size})}">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+
+            <!-- Números de página -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, con.totalPages - 1)}"
+                th:classappend="${i == con.number} ? 'active'">
+                <a class="page-link" th:href="@{/consultorio(page=${i}, size=${con.size})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <!-- Botón siguiente -->
+            <li class="page-item" th:classappend="${con.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/consultorio(page=${con.number + 1}, size=${con.size})}">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Modal Agregar -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="wrapper modal-content">
+                <form th:action="@{create-consultorio}" th:object="${consultorio}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Agregar Consultorio</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-person-circle"></i>
+                            <input type="text" class="form-control is-valid" id="nombre"
+                                   name="nombre"
+                                   placeholder="Nombre Consultorio"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="text" class="form-control is-valid" id="direccion"
+                                   name="direccion"
+                                   placeholder="Direccion Consultorio"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="tel" class="form-control is-valid" id="telefono"
+                                   name="telefono"
+                                   minlength="8"
+                                   maxlength="10"
+                                   placeholder="Numero de telefono"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary mx-auto"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success mx-auto">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar -->
+    <div th:each="c : ${con}">
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
+             th:id="'editModal-' + ${c.idConsultorio}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="wrapper modal-content">
+                    <!-- Apunta al endpoint PutMapping, pero el form es POST + override -->
+                    <form th:action="@{update-consultorio/{id}(id=${c.idConsultorio})}" method="post">
+                        <!-- Method override para que Spring lo trate como PUT -->
+                        <input type="hidden" name="_method" value="put" />
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Actualizar Consultorio</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-field d-flex align-items-center mb-3">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <input type="text"
+                                       class="form-control"
+                                       id="nombreEdit"
+                                       name="nombre"
+                                       th:value="${c.nombre}"
+                                       placeholder="Nombre Consultorio"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center mb-3">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                <input type="text"
+                                       class="form-control"
+                                       id="direccionEdit"
+                                       name="direccion"
+                                       th:value="${c.direccion}"
+                                       placeholder="Dirección Consultorio"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center mb-3">
+                                <i class="bi bi-telephone me-2"></i>
+                                <input type="tel"
+                                       class="form-control"
+                                       id="telefonoEdit"
+                                       name="telefono"
+                                       th:value="${c.telefono}"
+                                       minlength="8"
+                                       maxlength="10"
+                                       placeholder="Número de teléfono"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-secondary mx-auto"
+                                    data-bs-dismiss="modal"
+                                    style="width:40%">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="btn btn-primary mx-auto"
+                                    style="width:40%">
+                                Actualizar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+    h1 {
+        font-weight: bold;
+        margin: 0;
+    }
+
+    p {
+        font-size: 14px;
+        font-weight: 100;
+        line-height: 20px;
+        letter-spacing: 0.5px;
+        margin: 20px 0 30px;
+    }
+
+    button {
+        border-radius: 20px;
+        border: 1px solid #8b5a39;
+        background-color: #8b5a39;
+        color: #FFFFFF;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 12px 45px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: transform 80ms ease-in;
+    }
+
+    button:active {
+        transform: scale(0.95);
+    }
+
+    button:focus {
+        outline: none;
+    }
+
+    button.ghost {
+        background-color: transparent;
+        border-color: #FFFFFF;
+    }
+
+    form {
+        background-color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
+        /* —— AQUI CAMBIAS —— */
+        padding: 0 80px;     /* antes: 0 50px */
+
+        height: 100%;
+        text-align: center;
+    }
+
+    input {
+        background-color: #eee;
+        border: none;
+        padding: 12px 15px;
+        margin: 8px 0;
+        width: 100%;
+    }
+
+    .loginContainer {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 14px 28px rgba(0,0,0,0.25),
+                    0 10px 10px rgba(0,0,0,0.22);
+        position: relative;
+        overflow: hidden;
+
+        /* —— Responsive —— */
+        width: 60vw;
+        height: 70vh;
+    }
+
+    .form-loginContainer {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        transition: all 0.6s ease-in-out;
+    }
+
+    .sign-in-loginContainer {
+        left: 0;
+        width: 50%;
+        z-index: 2;
+    }
+
+    .loginContainer.right-panel-active .sign-in-loginContainer {
+        transform: translateX(100%);
+    }
+
+    .sign-up-loginContainer {
+        left: 0;
+        width: 50%;
+        opacity: 0;
+        z-index: 1;
+    }
+
+    .loginContainer.right-panel-active .sign-up-loginContainer {
+        transform: translateX(100%);
+        opacity: 1;
+        z-index: 5;
+        animation: show 0.6s;
+    }
+
+    @keyframes show {
+        0%, 49.99% {
+            opacity: 0;
+            z-index: 1;
+        }
+
+        50%, 100% {
+            opacity: 1;
+            z-index: 5;
+        }
+    }
+
+    .overlay-loginContainer {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 50%;
+        height: 100%;
+        overflow: hidden;
+        transition: transform 0.6s ease-in-out;
+        z-index: 100;
+    }
+
+    .loginContainer.right-panel-active .overlay-loginContainer{
+        transform: translateX(-100%);
+    }
+
+    .overlay {
+        background: #8b5a39;
+        background: -webkit-linear-gradient(to right, #8b5a39, #8b5a39);
+        background: linear-gradient(to right, #8b5a39, #8b5a39);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: 0 0;
+        color: #FFFFFF;
+        position: relative;
+        left: -100%;
+        height: 100%;
+        width: 200%;
+          transform: translateX(0);
+        transition: transform 0.6s ease-in-out;
+    }
+
+    .loginContainer.right-panel-active .overlay {
+          transform: translateX(50%);
+    }
+
+    .overlay-panel {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
+        /* —— AQUI CAMBIAS —— */
+        padding: 0 60px;     /* antes: 0 40px */
+        background-image: url('/image/kira_logo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        text-align: center;
+        top: 0;
+        height: 100%;
+        width: 50%;
+        transform: translateX(0);
+        transition: transform 0.6s ease-in-out;
+    }
+
+    .overlay-left {
+        transform: translateX(-20%);
+    }
+
+    .loginContainer.right-panel-active .overlay-left {
+        transform: translateX(0);
+    }
+
+    .overlay-right {
+        right: 0;
+        transform: translateX(0);
+    }
+
+    .loginContainer.right-panel-active .overlay-right {
+        transform: translateX(20%);
+    }
+  </style>
+  <div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="loginContainer" id="loginContainer">
+      <div class="form-loginContainer sign-up-loginContainer">
+        <form th:action="@{create-usuarioLogin}" th:object="${usuario}" method="post">
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-person-fill-add"></i>
+            <input type="text" class="form-control is-valid" id="nombre"
+                   name="nombre"
+                   placeholder="Nombre"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="text" class="form-control is-valid" id="apellidoMaterno"
+                   name="apellidoMaterno"
+                   placeholder="Apellido Materno"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="text" class="form-control is-valid" id="apellidoPaterno"
+                   name="apellidoPaterno"
+                   placeholder="Apellido Paterno"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="number" class="form-control is-valid" id="edad"
+                   name="edad"
+                   min="1" max="99"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="email" th:class="${#fields.hasErrors('correo')}? 'form-control is-invalid':form-control"
+                   id="correo"
+                   name="correo"
+                   th:field="*{correo}"
+                   placeholder="Correo Electronico"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="password" class="form-control is-valid" id="contrasena"
+                   name="contrasena"
+                   placeholder="Contraseña"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="tel" class="form-control is-valid" id="telefono"
+                   name="telefono"
+                   minlength="8"
+                   maxlength="10"
+                   placeholder="Numero de telefono"
+                   required>
+          </div>
+          <button class="btn mt-3">Login</button>
+          <p>Ya tienes una cuenta? <a href="#" id="signIn" class="text-dark fw-bold"> Inicia Sesion</a>
+        </form>
+      </div>
+      <div class="form-loginContainer sign-in-loginContainer">
+        <form th:action="@{/auth/login}" method="post" class="p-3 mt-3">
+          <h1 class="mb-2">Iniciar Sesion</h1>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-person-circle"></i>
+            <input type="email" class="form-control is-valid"
+                   name="correo"
+                   placeholder="Correo Electronico"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="password" class="form-control is-valid"
+                   name="contrasena"
+                   placeholder="Contraseña"
+                   required>
+          </div>
+          <button class="btn mt-3">Iniciar Sesion</button>
+          <p>No estas Registrado? <a href="#" id="signUp" class="text-dark fw-bold"> Crea una cuenta</a>
+          </p>
+        </form>
+      </div>
+      <div class="overlay-loginContainer">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+          </div>
+          <div class="overlay-panel overlay-right">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script th:inline="javascript">
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+    const container = document.getElementById('loginContainer');
+
+    signUpButton.addEventListener('click', () => {
+        container.classList.add("right-panel-active");
+    });
+
+    signInButton.addEventListener('click', () => {
+        container.classList.remove("right-panel-active");
+    });
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+
+    <!-- Botón Agregar -->
+    <button type="button"
+            class="btn btn-success mt-5"
+            data-bs-toggle="modal"
+            data-bs-target="#addModal">
+        Agregar Servicio
+    </button>
+
+    <!-- Tabla de servicios -->
+    <table class="table table-bordered table-hover mt-3">
+        <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Duracion</th>
+            <th>Precio</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="servicio : ${ser.content}">
+            <td th:text="${servicio.idServicio}">ID Ejemplo</td>
+            <td th:text="${servicio.nombre}">Nombre Ejemplo</td>
+            <td th:text="${servicio.duracion} + ' min'">Duración Ejemplo</td>
+            <td th:text="'$' + ${servicio.precio}">Precio Ejemplo</td>
+            <td th:text="'Estado: ' + ${servicio.estatus}">Estatus Ejemplo</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        th:attr="data-bs-target='#editModal-' + ${servicio.idServicio}">
+                    <i class="bi bi-pencil-square"></i> Editar
+                </button>
+                <form th:action="@{delete-servicio/{id}(id=${servicio.idServicio})}" method="post" style="display:inline"
+                      th:onsubmit="return confirm('¿Seguro que deseas borrar este servicio?');">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i> Borrar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <nav th:if="${ser.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <!-- Botón anterior -->
+            <li class="page-item" th:classappend="${ser.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/servicios(page=${ser.number - 1}, size=${ser.size})}">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+
+            <!-- Números de página -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, ser.totalPages - 1)}"
+                th:classappend="${i == ser.number} ? 'active'">
+                <a class="page-link" th:href="@{/servicios(page=${i}, size=${ser.size})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <!-- Botón siguiente -->
+            <li class="page-item" th:classappend="${ser.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/servicios(page=${ser.number + 1}, size=${ser.size})}">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Modal Agregar -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="wrapper modal-content">
+                <form th:action="@{create-servicio}" th:object="${servicio}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Agregar Servicio</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-person-circle"></i>
+                            <input type="text" class="form-control is-valid" id="nombre"
+                                   name="nombre"
+                                   placeholder="Nombre Servicio"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="text" class="form-control is-valid" id="descripcion"
+                                   name="descripcion"
+                                   placeholder="Descripcion Servicio"
+                                   required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="number" class="form-control is-valid"
+                                   min="45" max="90" id="duracion" value="45"
+                                   step="15" name="duracion" required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <input type="number" class="form-control is-valid"
+                                   min="450" max="1000" id="precio" value="450"
+                                   step="50" name="precio" required>
+                        </div>
+                        <div class="form-field d-flex align-items-center">
+                            <i class="bi bi-lock"></i>
+                            <select class="form-select"
+                                    id="estatus"
+                                    name="estatus"
+                                    required>
+                                <option value="">Seleccione un Estatus</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="nodisponible">No Disponible</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary mx-auto"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success mx-auto">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar -->
+    <div th:each="serv : ${ser}">
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
+             th:id="'editModal-' + ${serv.idServicio}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="wrapper modal-content">
+                    <!-- Apunta al endpoint PutMapping, pero el form es POST + override -->
+                    <form th:action="@{update-servicio/{id}(id=${serv.idServicio})}" method="post">
+                        <!-- Method override para que Spring lo trate como PUT -->
+                        <input type="hidden" name="_method" value="put" />
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Actualizar Consultorio</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-person-circle"></i>
+                                <input type="text" class="form-control is-valid"
+                                       id="nombreEdit"
+                                       name="nombre"
+                                       th:value="${serv.nombre}"
+                                       placeholder="Nombre Servicio"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="text" class="form-control is-valid"
+                                       id="descripcionEdit"
+                                       name="descripcion"
+                                       th:value="${serv.descripcion}"
+                                       placeholder="Descripcion Servicio"
+                                       required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="number" class="form-control is-valid"
+                                       th:value="${serv.duracion}"
+                                       id="duracionEdit" name="duracion" required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <input type="number" class="form-control is-valid"
+                                       th:value="${serv.precio}"
+                                       id="precioEdit" name="precio" required>
+                            </div>
+                            <div class="form-field d-flex align-items-center">
+                                <i class="bi bi-lock"></i>
+                                <select class="form-select"
+                                        id="estatusEdit"
+                                        name="estatus"
+                                        th:value="${serv.estatus}"
+                                        required>
+                                    <option value="">Seleccione un Estatus</option>
+                                    <option value="disponible">Disponible</option>
+                                    <option value="nodisponible">No Disponible</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-secondary mx-auto"
+                                    data-bs-dismiss="modal"
+                                    style="width:40%">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="btn btn-primary mx-auto"
+                                    style="width:40%">
+                                Actualizar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>

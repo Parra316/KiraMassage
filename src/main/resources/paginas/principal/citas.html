@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body th:replace="~{plantillas/plantilla :: body (~{::contenido})}">
+<div th:fragment="contenido">
+
+  <!-- Botón Agregar -->
+  <button type="button"
+          class="btn btn-success mt-5"
+          data-bs-toggle="modal"
+          data-bs-target="#addModal">
+    Agregar Servicio
+  </button>
+
+  <!-- Tabla de citas -->
+  <table class="table table-bordered table-hover mt-3">
+    <thead class="table-dark">
+    <tr>
+      <th>Id</th>
+      <th>Usuario</th>
+      <th>Masajista</th>
+      <th>Servicio</th>
+      <th>Consultorio</th>
+      <th>Horario</th>
+      <th>Fecha</th>
+      <th>Estatus</th>
+      <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="cita : ${citas}">
+      <td th:text="${cita.idCita}">ID Ejemplo</td>
+      <td th:text="${cita.citaUsuario.nombre}">Usuario Ejemplo</td>
+      <td th:text="${cita.citaMasajista.nombre}">Masajista Ejemplo</td>
+      <td th:text="${cita.citaServicio.nombre}">Precio Ejemplo</td>
+      <td th:text="${cita.citaConsultorio.nombre}">Estatus Ejemplo</td>
+      <td th:text="${cita.citaHorario.horaInicio} + '-' + ${cita.citaHorario.horaFin}">Estatus Ejemplo</td>
+      <td th:text="${cita.fechaCita}">Estatus Ejemplo</td>
+      <td th:text="${cita.estatus}">Estatus Ejemplo</td>
+      <td>
+        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                th:attr="data-bs-target='#editModal-' + ${cita.idCita}">
+          <i class="bi bi-pencil-square"></i> Editar
+        </button>
+        <form th:action="@{delete-cita/{id}(id=${cita.idCita})}" method="post" style="display:inline"
+              th:onsubmit="return confirm('¿Seguro que deseas borrar esta cita?');">
+          <input type="hidden" name="_method" value="delete"/>
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-trash"></i> Borrar
+          </button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- Paginación -->
+  <nav th:if="${citPage.totalPages > 1}">
+    <ul class="pagination justify-content-center">
+      <!-- Botón anterior -->
+      <li class="page-item" th:classappend="${citPage.first} ? 'disabled'">
+        <a class="page-link" th:href="@{/citas(page=${citPage.number - 1}, size=${citPage.size})}">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+      </li>
+
+      <!-- Números de página -->
+      <li class="page-item"
+          th:each="i : ${#numbers.sequence(0, citPage.totalPages - 1)}"
+          th:classappend="${i == citPage.number} ? 'active'">
+        <a class="page-link" th:href="@{/citas(page=${i}, size=${citPage.size})}"
+           th:text="${i + 1}">1</a>
+      </li>
+
+      <!-- Botón siguiente -->
+      <li class="page-item" th:classappend="${citPage.last} ? 'disabled'">
+        <a class="page-link" th:href="@{/citas(page=${citPage.number + 1}, size=${citPage.size})}">
+          Siguiente <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Modal Agregar -->
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="wrapper modal-content">
+        <form th:action="@{crear-cita}" method="post" th:object="${cita}" class="p-3">
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <select class="form-select" id="citaUsuario" name="citaUsuario" required>
+              <option value="" disabled selected>Seleccione un Usuario</option>
+              <option th:each="cli : ${clientes}" th:value="${cli.idUsuario}" th:text="${cli.nombre}"></option>
+            </select>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <select class="form-select" id="citaMasajista" name="citaMasajista" required>
+              <option value="" disabled selected>Seleccione un Masajista</option>
+              <option th:each="user : ${masajistas}" th:value="${user.idUsuario}" th:text="${user.nombre}"></option>
+            </select>
+          </div>
+
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <select class="form-select"
+                    id="citaConsultorio"
+                    name="citaConsultorio"
+                    onchange="actualizarServicioscita()"
+                    required>
+              <option value="" th:selected="${consultorioSeleccionado == null}">Seleccione un Consultorio</option>
+              <option th:each="cons : ${consultorios}"
+                      th:value="${cons.idConsultorio}"
+                      th:text="${cons.nombre}"
+                      th:selected="${cons.idConsultorio == consultorioSeleccionado}">
+              </option>
+            </select>
+          </div>
+
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <select class="form-select"
+                    id="citaServicio"
+                    name="citaServicio"
+                    onchange="actualizarDatosServicio()"
+                    required>
+              <option value="" th:selected="${servicioSeleccionado == null}">Seleccione un Servicio</option>
+              <option th:each="serv : ${servicios}"
+                      th:value="${serv.idServicio}"
+                      th:data-precio="${serv.precio}"
+                      th:data-duracion="${serv.duracion}"
+                      th:text="${serv.nombre}"
+                      th:selected="${serv.idServicio == servicioSeleccionado}">
+              </option>
+            </select>
+          </div>
+
+          <div class="row mb-3 justify-content-around">
+            <div class="col-5 d-flex align-items-center gap-2">
+              <label for="precio" class="mb-0">Precio:</label>
+              <input type="text" id="precio" class="form-control" readonly>
+            </div>
+            <div class="col-5 d-flex align-items-center gap-2">
+              <label for="duracion" class="mb-0">Duración:</label>
+              <input type="text" id="duracion" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="date"
+                   th:min="${fechaActual}"
+                   id="fecha"
+                   name="fecha"
+                   class="form-control"
+                   required>
+          </div>
+          <div class="form-field d-flex align-items-center">
+            <i class="bi bi-lock"></i>
+            <input type="time"
+                   id="horaInicio"
+                   name="horaInicio"
+                   class="form-control"
+                   min="11:00" max="21:00"
+                   required>
+          </div>
+          <button class="btn mt-3">Agendar Cita</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar -->
+  <div th:each="cita : ${citas}">
+    <div class="modal fade"
+         th:id="'editModal-' + ${cita.idCita}"
+         tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content p-3">
+          <form th:action="@{/cita/update}" method="post" th:object="${cita}">
+            <input type="hidden" name="_method" value="put"/>
+
+            <!-- Cliente -->
+            <select th:field="*{citaUsuario.idUsuario}" class="form-select" required>
+              <option value="" disabled>Seleccione un Usuario</option>
+              <option th:each="cli : ${clientes}"
+                      th:value="${cli.idUsuario}"
+                      th:text="${cli.nombre} + ' ' + ${cli.apellidoPaterno}"
+                      th:selected="${cli.idUsuario} == ${cita.citaUsuario.idUsuario}">
+              </option>
+            </select>
+
+            <!-- Masajista -->
+            <select th:field="*{citaMasajista.idUsuario}" class="form-select" required>
+              <option value="" disabled>Seleccione un Masajista</option>
+              <option th:each="m : ${masajistas}"
+                      th:value="${m.idUsuario}"
+                      th:text="${m.nombre} + ' ' + ${m.apellidoPaterno}"
+                      th:selected="${m.idUsuario} == ${cita.citaMasajista.idUsuario}">
+              </option>
+            </select>
+
+            <!-- Consultorio -->
+            <select th:field="*{citaConsultorio.idConsultorio}" class="form-select" required>
+              <option value="" disabled>Seleccione un Consultorio</option>
+              <option th:each="cons : ${consultorios}"
+                      th:value="${cons.idConsultorio}"
+                      th:text="${cons.nombre}"
+                      th:selected="${cons.idConsultorio} == ${cita.citaConsultorio.idConsultorio}">
+              </option>
+            </select>
+
+            <!-- Servicio -->
+            <select th:field="*{citaServicio.idServicio}" class="form-select" required>
+              <option value="" disabled>Seleccione un Servicio</option>
+              <option th:each="serv : ${serviciosPorConsultorio[cita.citaConsultorio.idConsultorio]}"
+                      th:value="${serv.idServicio}"
+                      th:text="${serv.nombre}"
+                      th:selected="${serv.idServicio} == ${cita.citaServicio.idServicio}">
+              </option>
+            </select>
+
+            <!-- Fecha y hora -->
+            <input type="date"   th:field="*{fechaCita}" th:min="${fechaActual}" class="form-control" required/>
+            <input type="time"   th:value="${cita.citaHorario.horaInicio}" min="11:00" max="21:00" class="form-control" required/>
+
+            <button type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+      // Debes pasar desde el controlador un atributo "serviciosPorConsultorio"
+      // que sea un Map<Long, List<ServicioDTO>>. Aquí Thymeleaf lo convierte a JS.
+      var serviciosPorConsultorio = /*[[${serviciosPorConsultorio}]]*/ {};
+
+      // Al cargar: engancha también el listener de cambio de servicio
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('citaConsultorio')
+                .addEventListener('change', actualizarServicioscita);
+
+        // Si ya había un servicio seleccionado, dispara su update:
+        const servSel = document.getElementById('citaServicio');
+        if (servSel && servSel.value) {
+          actualizarDatosServicio();
+        }
+      });
+
+      var servicioSeleccionado = /*[[${servicioSeleccionado}]]*/ null;
+
+      window.addEventListener('DOMContentLoaded', function () {
+      const consId = document.getElementById('citaConsultorio').value;
+        const servicios = serviciosPorConsultorio[consId] || [];
+
+        const servicioSelect = document.getElementById('citaServicio');
+        // Reinicio opciones
+        servicioSelect.innerHTML =
+          '<option value="" disabled selected>Seleccione un Servicio</option>';
+
+        // Repoblo sólo con los que estén en el mapa
+        servicios.forEach(serv => {
+          const opt = document.createElement('option');
+          opt.value = serv.idServicio;
+          opt.text  = serv.nombre;
+          opt.dataset.precio   = serv.precio;
+          opt.dataset.duracion = serv.duracion;
+          if (servicioSeleccionado != null
+              && serv.idServicio.toString() === servicioSeleccionado.toString()) {
+            opt.selected = true;
+          }
+          servicioSelect.appendChild(opt);
+        });
+      });
+
+      function actualizarDatosServicio() {
+        const select = document.getElementById('citaServicio');
+        const opt    = select.options[select.selectedIndex];
+        const precio   = opt.getAttribute('data-precio');
+        const duracion = opt.getAttribute('data-duracion');
+
+        document.getElementById('precio').value   = precio   ? `$${precio}`   : '';
+        document.getElementById('duracion').value = duracion ? `${duracion} min` : '';
+      }
+
+      function actualizarServicioscita() {
+        const consId = document.getElementById('citaConsultorio').value;
+        const servicios = serviciosPorConsultorio[consId] || [];
+
+        const servicioSelect = document.getElementById('citaServicio');
+        // Reinicio opciones
+        servicioSelect.innerHTML =
+          '<option value="" disabled selected>Seleccione un Servicio</option>';
+
+        // Repoblo sólo con los que estén en el mapa
+        servicios.forEach(serv => {
+          const opt = document.createElement('option');
+          opt.value = serv.idServicio;
+          opt.text  = serv.nombre;
+          opt.dataset.precio   = serv.precio;
+          opt.dataset.duracion = serv.duracion;
+          servicioSelect.appendChild(opt);
+        });
+
+        // Limpiar campos de precio/duración
+        document.getElementById('precio').value   = '';
+        document.getElementById('duracion').value = '';
+      }
+    /*]]>*/
+  </script>
+
+</div>
+</body>
+</html>

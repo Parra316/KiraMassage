@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kira Massage</title>
+    <link th:href="@{/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/iconos/bootstrap-icons.css}" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body th:fragment="body(contentFragment)">
+<div class="contenido-scrollable mx-auto mt-5 bg-opacity-10 rounded-4" style="max-width: 70%">
+    <nav class="navbar navbar-expand-xl mx-auto" style="max-width: 80%">
+        <div class="container-fluid">
+
+            <!-- Zona 30%: Título -->
+            <div class="text-center" style="flex: 0 0 30%; max-width: 30%;">
+                <h1 class="m-0 fs-4 text-dark" th:text="${page}"></h1>
+            </div>
+
+            <!-- Botón para colapsar en móvil -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Zona 70%: Enlaces -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav"
+                 style="flex: 0 0 70%; max-width: 70%;">
+                <ul class="nav nav-pills">
+                    <li class="nav-item" sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'inicio'} ? 'active'" href="/">
+                            <i class="bi bi-house"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="nav-link text-dark" th:classappend="${page == 'Login'} ? 'active'" href="/login">
+                            <i class="bi bi-person-add"></i> Iniciar Sesion
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'Agendar'} ? 'active'" href="/agendaCitas">
+                            <i class="bi bi-calendar-date"></i> Agendar Cita
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'citas'} ? 'active'" href="/citas">
+                            <i class="bi bi-calendar-date"></i> Citas
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'consultorio'} ? 'active'" href="/consultorio">
+                            <i class="bi bi-hospital"></i> Consultorio
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'disponibilidad'} ? 'active'" href="/disponibilidad">
+                            <i class="bi bi-hospital"></i> Disponibilidad
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'roles'} ? 'active'" href="/roles">
+                            <i class="bi bi-hospital"></i> Roles
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'servicios'} ? 'active'" href="/servicios">
+                            <i class="bi bi-heart-pulse"></i> Servicios
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-dark" th:classappend="${page == 'usuarios'} ? 'active'" href="/usuarios">
+                            <i class="bi bi-hospital"></i> Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a href="#" onclick="document.getElementById('logoutForm').submit()"
+                           class="nav-link text-dark" th:classappend="${page == 'cerrar sesion'} ? 'active'">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                        <form id="logoutForm" th:action="@{/logout}" method="post" style="display: none;">
+                            <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Dinámico -->
+    <div th:insert="${contentFragment}"></div>
+    <!-- Navbar
+    <nav class="navbar navbar-dark bg-dark mt-3">
+        <div class="container-fluid">
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${page == 'inicio'} ? 'active'" href="/">
+                        <i class="bi bi-house"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:classappend="${page == 'servicios'} ? 'active'" href="/servicios">
+                        <i class="bi bi-heart-pulse"></i> Servicios
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:classappend="${page == 'consultorio'} ? 'active'" href="/consultorio">
+                        <i class="bi bi-hospital"></i> Consultorio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${page == 'citas'} ? 'active'" href="/citas">
+                        <i class="bi bi-calendar-date"></i> Citas
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a href="#" onclick="document.getElementById('logoutForm').submit()"
+                       class="nav-link" th:classappend="${page == 'cerrar sesion'} ? 'active'">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesion
+                    </a>
+                    <form id="logoutForm" th:action="@{/logout}" method="post" style="display: none;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

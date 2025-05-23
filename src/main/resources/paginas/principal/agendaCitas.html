@@ -6,7 +6,7 @@
 <div th:fragment="contenido">
   <div class="wrapper mt-5">
     <div class="text-center mt-4 name">Kira Massage</div>
-    <form th:action="@{create-cita}" method="post" th:object="${cita}" class="p-3">
+    <form th:action="@{create-agendaCita}" method="post" th:object="${cita}" class="p-3">
       <div class="form-field d-flex align-items-center">
         <i class="bi bi-lock"></i>
         <select class="form-select" id="citaUsuario" name="citaUsuario" required>
@@ -25,8 +25,8 @@
       <div class="form-field d-flex align-items-center">
         <i class="bi bi-lock"></i>
         <select class="form-select"
-                id="dispoConsultorio"
-                name="dispoConsultorio"
+                id="horarioConsultorio"
+                name="horarioConsultorio"
                 onchange="actualizarServiciosDispo()"
                 required>
           <option value="" th:selected="${consultorioSeleccionado == null}">Seleccione un Consultorio</option>
@@ -67,25 +67,32 @@
         </div>
       </div>
 
-      <div class="form-field d-flex align-items-center">
-        <i class="bi bi-lock"></i>
-        <input type="date"
-               th:min="${fechaActual}"
-               id="fecha"
-               name="fechaCita"
-               class="form-control"
-               required>
+      <div class="row mb-3 justify-content-around">
+        <div class="form-field d-flex align-items-center" style="width: 40%">
+          <i class="bi bi-lock"></i>
+          <input
+                  type="date"
+                  class="form-control"
+                  id="fecha"
+                  name="fecha"
+                  th:attr="min=${#temporals.format(fechaActual,'yyyy-MM-dd')}"
+                  required />
+        </div>
+        <div class="form-field d-flex align-items-center" style="width: 40%">
+          <i class="bi bi-lock"></i>
+          <select id="horaInicio"
+                  name="horaInicio"
+                  class="form-control" required>
+            <option value="" disabled>Selecciona hora</option>
+            <option th:each="t : ${franjas}"
+                    th:value="${#temporals.format(t,'HH:mm')}"
+                    th:text="${#temporals.format(t,'HH:mm')}">
+            </option>
+          </select>
+        </div>
       </div>
-      <div class="form-field d-flex align-items-center">
-        <i class="bi bi-lock"></i>
-        <input type="time"
-               id="horaInicio"
-               name="horaInicio"
-               class="form-control"
-               min="11:00" max="21:00"
-               required>
-      </div>
-      <button class="btn mt-3">Agendar Cita</button>
+
+      <button type="submit" class="btn btn-primary mt-3 mx-auto">Agendar Cita</button>
     </form>
   </div>
 
@@ -100,7 +107,7 @@
 
       // Al cargar: engancha también el listener de cambio de servicio
       document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('dispoConsultorio')
+        document.getElementById('horarioConsultorio')
                 .addEventListener('change', actualizarServiciosDispo);
 
         // Si ya había un servicio seleccionado, dispara su update:
@@ -113,7 +120,7 @@
       var servicioSeleccionado = /*[[${servicioSeleccionado}]]*/ null;
 
       window.addEventListener('DOMContentLoaded', function () {
-      const consId = document.getElementById('dispoConsultorio').value;
+      const consId = document.getElementById('horarioConsultorio').value;
         const servicios = serviciosPorConsultorio[consId] || [];
 
         const servicioSelect = document.getElementById('citaServicio');
@@ -147,7 +154,7 @@
       }
 
       function actualizarServiciosDispo() {
-        const consId = document.getElementById('dispoConsultorio').value;
+        const consId = document.getElementById('horarioConsultorio').value;
         const servicios = serviciosPorConsultorio[consId] || [];
 
         const servicioSelect = document.getElementById('citaServicio');

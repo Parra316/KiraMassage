@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +39,7 @@ public class Cita {
     @JoinColumn(name = "horario_id")
     private Horario citaHorario;
     @Column(name = "fecha_cita")
-    private LocalDateTime fechaCita;
+    private LocalDate fechaCita;
     @Column(name = "estatus")
     private String estatus;
     @JsonIgnore

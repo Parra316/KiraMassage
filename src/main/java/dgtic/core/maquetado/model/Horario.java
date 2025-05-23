@@ -32,7 +32,6 @@ public class Horario implements Serializable {
     @NotNull
     private LocalTime horaInicio;
     @Column(name = "hora_fin")
-    @NotNull
     private LocalTime horaFin;
     @JsonIgnore
     @OneToMany(mappedBy = "citaHorario", cascade = CascadeType.ALL, orphanRemoval = true)

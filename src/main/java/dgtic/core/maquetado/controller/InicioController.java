@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,12 @@ public class InicioController {
                         m -> new ArrayList<>(m.values())
                 ));
 
+        List<LocalTime> franjas = new ArrayList<>();
+        for (int min = 11*60; min <= 21*60; min += 30) {
+            franjas.add(LocalTime.of(min/60, min%60));
+        }
+        modelo.addAttribute("franjas", franjas);
+
         // 3) Construimos el mapa consultorioId -> List<Servicio>
         Map<Integer, List<Servicio>> serviciosPorConsultorio = disponibilidadList.stream()
                 .collect(Collectors.groupingBy(
@@ -103,6 +110,7 @@ public class InicioController {
         modelo.addAttribute("consultorioSeleccionado",consultorioId);
         // <-- Nuevo atributo para el filtrado dinámico -->
         modelo.addAttribute("serviciosPorConsultorio", serviciosPorConsultorio);
+        modelo.addAttribute("cita", new Cita());
         modelo.addAttribute("page", "Agendar Cita");
         return "principal/agendaCitas";
     }

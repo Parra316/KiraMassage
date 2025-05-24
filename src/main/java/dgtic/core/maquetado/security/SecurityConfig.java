@@ -1,6 +1,6 @@
 package dgtic.core.maquetado.security;
 
-import dgtic.core.maquetado.security.jwt.JwtSessionFilter;
+import dgtic.core.maquetado.security.jwt.JwtCookieFilter;
 import dgtic.core.maquetado.security.validation.CustomAccessDeniedHandler;
 import dgtic.core.maquetado.security.validation.CustomAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private JwtSessionFilter jwtSessionFilter;
+    private JwtCookieFilter jwtCookieFilter;
 
     @Autowired
     private CustomAuthenticationEntryPoint authenticationEntryPoint;
@@ -88,7 +88,7 @@ public class SecurityConfig {
                 );
 
         // Agrega tu filtro personalizado
-        http.addFilterBefore(jwtSessionFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtCookieFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

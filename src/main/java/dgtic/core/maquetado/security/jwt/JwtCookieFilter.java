@@ -2,9 +2,9 @@ package dgtic.core.maquetado.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class JwtSessionFilter extends OncePerRequestFilter {
+public class JwtCookieFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -30,28 +30,36 @@ public class JwtSessionFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
+        String token = getJwtFromCookies(request);
 
-        if (session != null && session.getAttribute("jwt") != null) {
-            String token = (String) session.getAttribute("jwt");
+        if (token != null && jwtUtils.validateJwt(token)) {
+            String correo = jwtUtils.getCorreoFromJwt(token);
 
-            if (jwtUtils.validateJwt(token)) {
-                String correo = jwtUtils.getCorreoFromJwt(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
 
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         filterChain.doFilter(request, response);
     }
-}
 
+    private String getJwtFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return null;
+
+        for (Cookie cookie : cookies) {
+            if ("jwt".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
+}

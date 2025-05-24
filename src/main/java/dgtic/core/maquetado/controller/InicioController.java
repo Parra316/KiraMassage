@@ -3,6 +3,7 @@ package dgtic.core.maquetado.controller;
 import dgtic.core.maquetado.model.*;
 import dgtic.core.maquetado.security.model.UserDetailsImpl;
 import dgtic.core.maquetado.service.*;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -258,7 +259,17 @@ public class InicioController {
     }
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-        return "principal/logout";
+        // Eliminar la cookie JWT
+        Cookie cookie = new Cookie("jwt", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Expira inmediatamente
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+
+        // Invalidar sesión si también usas HttpSession
+        request.getSession().invalidate();
+
+        return "redirect:/login?logout=true";
     }
 
     @GetMapping("/login?logout=true")

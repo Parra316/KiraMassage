@@ -5,9 +5,11 @@ import dgtic.core.maquetado.model.Disponibilidad;
 import dgtic.core.maquetado.security.jwt.JwtUtils;
 import dgtic.core.maquetado.security.model.UserDetailsImpl;
 import dgtic.core.maquetado.service.DisponibilidadService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.Cookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,7 +39,8 @@ public class AuthController {
 
     @PostMapping("/auth/login")
     public String loginSubmit(LoginRequest loginRequest,
-                              HttpSession session,
+                              HttpSession session, // Puedes eliminar si ya no usas sesión
+                              HttpServletResponse response, // 👈 Se añade esto
                               Model modelo) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -54,8 +57,15 @@ public class AuthController {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             String token = jwtUtils.generateJwt(userDetails.getUsername());
 
-            // Guardar el token en sesión
-            session.setAttribute("jwt", token);
+            // 🧁 Guardar el token como cookie
+            Cookie jwtCookie = new Cookie("jwt", token);
+            jwtCookie.setHttpOnly(true);        // Previene acceso desde JavaScript
+            jwtCookie.setPath("/");             // Disponible en toda la app
+            jwtCookie.setMaxAge(60 * 60);       // 1 hora
+            response.addCookie(jwtCookie);      // 👉 Agregamos la cookie a la respuesta
+
+            // ✅ Puedes quitar esto si ya no usas sesiones:
+            // session.setAttribute("jwt", token);
 
             // Obtener los roles del usuario
             Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
@@ -67,14 +77,13 @@ public class AuthController {
                 return "redirect:/servicios";
             } else {
                 List<Disponibilidad> disponibilidadList = disponibilidadService.findAll();
-                // Extraemos sólo los consultorios únicos
                 List<Consultorio> consultorios = disponibilidadList.stream()
                         .map(Disponibilidad::getDispoConsultorio)
                         .collect(Collectors.collectingAndThen(
                                 Collectors.toMap(
                                         Consultorio::getIdConsultorio,
                                         Function.identity(),
-                                        (c1, c2) -> c1   // ante duplicados, conservar el primero
+                                        (c1, c2) -> c1
                                 ),
                                 m -> new ArrayList<>(m.values())
                         ));
@@ -89,6 +98,7 @@ public class AuthController {
             return "redirect:/login?error=true";
         }
     }
+
 
 
     // DTO interno
